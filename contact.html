@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact | SeamFlow Consulting</title>
+<meta name="description" content="Get in touch with SeamFlow Consulting to discuss the Clarity, Structure, or Growth Plan for your healthcare facility.">
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap nav-row">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/icon.png" alt="SeamFlow icon">
+      <div><div class="nb-word">SeamFlow</div><div class="nb-sub">Consulting</div></div>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="contact.html" class="active">Contact</a>
+      <a href="contact.html" class="nav-cta">Book a Consultation</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="contact.html">Contact</a>
+  </div>
+</header>
+
+<section class="hero" style="padding:48px 0 40px;">
+  <div class="wrap">
+    <div class="eyebrow on-navy">Contact</div>
+    <h1 style="font-size:30px;">Let's talk about your facility.</h1>
+    <p class="lede">Whether you're starting with the Clarity Plan or want the full system, tell us a bit about your facility and we'll respond directly.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap" style="display:flex;flex-direction:column;gap:40px;">
+
+    <div>
+      <div class="eyebrow">Reach Us Directly</div>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px;">
+        <div class="contact-card">
+          <div class="cc-label">Email</div>
+          <div class="cc-value">info@seamflowconsulting.com.ng</div>
+        </div>
+        <div class="contact-card">
+          <div class="cc-label">Phone / WhatsApp</div>
+          <div class="cc-value">+234 70 835 99785</div>
+        </div>
+        <div class="contact-card">
+          <div class="cc-label">Location</div>
+          <div class="cc-value">Ogun State, Nigeria</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap-narrow" style="padding:0;">
+      <div class="eyebrow">Send an Inquiry</div>
+      <h2 style="font-size:22px;margin-bottom:20px;">Tell us about your facility</h2>
+      <form id="inquiryForm" action="https://formsubmit.co/seamflowconsulting@gmail.com" method="POST">
+        <input type="hidden" name="_subject" value="New Inquiry from SeamFlow Website">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="thank-you.html">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="field">
+          <label for="facility">Facility Name</label>
+          <input type="text" id="facility" name="facility">
+        </div>
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone">
+        </div>
+        <div class="field">
+          <label for="interest">I'm Interested In</label>
+          <select id="interest" name="interest">
+            <option>Clarity Plan (&#8358;150,000)</option>
+            <option>Structure Plan (&#8358;250,000)</option>
+            <option>Growth Plan (&#8358;350,000)</option>
+            <option>All Three &mdash; Full Bundle (&#8358;650,000)</option>
+            <option>Not Sure Yet &mdash; Need Guidance</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" placeholder="Tell us a bit about your facility and what you're looking to fix or improve."></textarea>
+        </div>
+        <button type="submit" class="btn btn-gold btn-block">Send Inquiry</button>
+      </form>
+      <p class="fine-print" style="margin-top:14px;">By submitting, you agree to be contacted by SeamFlow Consulting about your inquiry.</p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="fb-word">SeamFlow</div>
+        <p>Clarity. Structure. Growth.&trade;<br>Healthcare business excellence for Nigerian healthcare SMEs — private hospitals, clinics, diagnostic centers, primary healthcare centers, and pharmacies.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Site</h5>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="services.html">Services</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h5>The Plans</h5>
+        <a href="services.html#clarity">Clarity Plan</a>
+        <a href="services.html#structure">Structure Plan</a>
+        <a href="services.html#growth">Growth Plan</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 SeamFlow Consulting. All rights reserved.</span>
+      <span>Ogun State, Nigeria</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('navToggle').addEventListener('click', function(){
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+</script>
+</body>
+</html>

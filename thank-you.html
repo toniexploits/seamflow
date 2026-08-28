@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank You | SeamFlow Consulting</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap nav-row">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/icon.png" alt="SeamFlow icon">
+      <div><div class="nb-word">SeamFlow</div><div class="nb-sub">Consulting</div></div>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="services.html">Services</a>
+    <a href="contact.html">Contact</a>
+  </div>
+</header>
+
+<section class="hero" style="padding:70px 0;text-align:center;">
+  <div class="wrap-narrow">
+    <div style="font-size:44px;margin-bottom:14px;">&#10003;</div>
+    <h1 style="font-size:26px;">Thank you — your inquiry has been sent.</h1>
+    <p class="lede">We've received your message and will respond directly, usually within one business day. In the meantime, feel free to explore the plans.</p>
+    <a href="services.html" class="btn btn-gold">Explore the Three Plans</a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>&copy; 2026 SeamFlow Consulting. All rights reserved.</span>
+      <span>Ogun State, Nigeria</span>
+    </div>
+  </div>
+</footer>
+<script>
+  document.getElementById('navToggle').addEventListener('click', function(){
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+</script>
+</body>
+</html>
