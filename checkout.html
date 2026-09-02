@@ -39,7 +39,7 @@
     clarity:   { name: "The Clarity Plan",   priceKobo: 15000000, label: "₦150,000", toolPage: "tools/clarity-plan.html" },
     structure: { name: "The Structure Plan", priceKobo: 25000000, label: "₦250,000", toolPage: "tools/structure-plan.html" },
     growth:    { name: "The Growth Plan",    priceKobo: 35000000, label: "₦350,000", toolPage: "tools/growth-plan.html" },
-    bundle:    { name: "All Three Plans",    priceKobo: 65000000, label: "₦650,000", toolPage: "services.html" }
+    bundle:    { name: "All Three Plans",    priceKobo: 65000000, label: "₦650,000", toolPage: "tools/clarity-plan.html", redirectPlan: "clarity" }
   };
 
   const params = new URLSearchParams(location.search);
@@ -70,7 +70,7 @@
 
     const popup = new PaystackPop();
     popup.newTransaction({
-      key: "REPLACE_WITH_PAYSTACK_PUBLIC_TEST_KEY",
+      key: "pk_test_28c41dc55cc0cca515e108aed684797c2a9c36fd",
       email,
       amount: plan.priceKobo,
       currency: "NGN",
@@ -85,7 +85,10 @@
           });
           if (!res.ok) throw new Error("verify failed");
           const { token } = await res.json();
-          location.href = `${plan.toolPage}?token=${token}&plan=${planKey}`;
+          if (plan.toolPage) {
+            const destinationPlan = plan.redirectPlan || planKey;
+            location.href = `${plan.toolPage}?token=${token}&plan=${destinationPlan}`;
+          }
         } catch (err) {
           statusEl.textContent = "We couldn't confirm the payment automatically. Contact us with your payment reference: " + transaction.reference;
           payBtn.disabled = false;
