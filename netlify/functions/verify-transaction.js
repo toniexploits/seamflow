@@ -2,7 +2,7 @@
 // Never trusts the client's claim of "paid" — it re-checks the transaction
 // with Paystack's own API using the secret key before issuing an access token.
 const crypto = require("crypto");
-const { getStore } = require("@netlify/blobs");
+const { getBlobStore } = require("./lib/blob-store");
 
 const PLAN_PRICES_KOBO = {
   clarity: 15000000,   // ₦150,000
@@ -45,9 +45,17 @@ exports.handler = async (event) => {
   const email = verifyJson.data.customer?.email || "unknown";
   const token = crypto.randomBytes(24).toString("hex");
 
-  const store = getStore("access-tokens");
+  const store = getBlobStore("access-tokens");
+  const existingTokens = await store.list({ prefix: "" });
+  for (const item of existingTokens.blobs || []) {
+    const existing = await store.get(item.key, { type: "json" });
+    if (existing?.reference === reference && existing.plan === plan) {
+      return { statusCode: 200, body: JSON.stringify({ token: item.key, plan }) };
+    }
+  }
   await store.setJSON(token, {
     plan,
+    grants: plan === "bundle" ? ["clarity", "structure", "growth"] : [plan],
     email,
     reference,
     paidAt: new Date().toISOString(),

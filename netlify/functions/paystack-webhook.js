@@ -3,10 +3,13 @@
 // never runs (closed tab, network drop, etc). Set this URL in the Paystack
 // dashboard: https://<your-site>.netlify.app/.netlify/functions/paystack-webhook
 const crypto = require("crypto");
-const { getStore } = require("@netlify/blobs");
+const { getBlobStore } = require("./lib/blob-store");
 
 exports.handler = async (event) => {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
+  if (!secretKey) {
+    return { statusCode: 503, body: "Payment verification unavailable" };
+  }
   const signature = event.headers["x-paystack-signature"];
   const expected = crypto.createHmac("sha512", secretKey).update(event.body).digest("hex");
 
@@ -18,7 +21,7 @@ exports.handler = async (event) => {
 
   if (payload.event === "charge.success") {
     const data = payload.data;
-    const store = getStore("payment-log");
+    const store = getBlobStore("payment-log");
     await store.setJSON(data.reference, {
       email: data.customer?.email,
       amountKobo: data.amount,
