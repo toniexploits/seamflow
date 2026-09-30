@@ -112,8 +112,22 @@
 <script>
 let ICON_B64;
 let SECTIONS;
+let TOKEN;
 
 let state = { screen:"home", sectionKey:null, deptIndex:null };
+
+/* ===================== USAGE TRACKING ===================== */
+// This tool has no questionnaire to submit (unlike the Clarity Plan) —
+// this just records that the access was used and what was looked at, so
+// admin.html has some visibility into it. Fire-and-forget.
+function logUsage(type, label){
+  if(!TOKEN) return;
+  fetch("/api/log-usage", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ token: TOKEN, plan:"growth", type, label: label || "" })
+  }).catch(()=>{});
+}
 
 function render(){
   const app = document.getElementById("app");
@@ -140,7 +154,7 @@ function brandHeader(){
     <p>Brand Trust \u00b7 Preventive Healthcare \u00b7 Performance \u00b7 People \u00b7 Expansion</p>
     <div class="plan-badge">
       <span style="color:#fff;font-size:12px;">You are viewing the</span>
-      <span class="amt">Growth Plan \u2014 \u20a6350,000</span>
+      <span class="amt">Growth Plan</span>
     </div>
   </div>`;
 }
@@ -241,12 +255,23 @@ function renderDept(){
 function attachHandlers(){
   if(state.screen === "home"){
     document.querySelectorAll(".section-card").forEach(el => {
-      el.onclick = () => { state.screen = "section"; state.sectionKey = el.getAttribute("data-key"); render(); };
+      el.onclick = () => {
+        state.screen = "section"; state.sectionKey = el.getAttribute("data-key");
+        const s = SECTIONS.find(x => x.key === state.sectionKey);
+        logUsage("view", s.title);
+        render();
+      };
     });
   } else if(state.screen === "section"){
     document.getElementById("backBtn").onclick = () => { state.screen = "home"; state.sectionKey = null; render(); };
     document.querySelectorAll(".dept-chip").forEach(el => {
-      el.onclick = () => { state.screen = "dept"; state.deptIndex = parseInt(el.getAttribute("data-dept"),10); render(); };
+      el.onclick = () => {
+        state.screen = "dept"; state.deptIndex = parseInt(el.getAttribute("data-dept"),10);
+        const s = SECTIONS.find(x => x.key === "kpi_dashboards");
+        const d = s.departments[state.deptIndex];
+        logUsage("view", `KPI Dashboards — ${d.name}`);
+        render();
+      };
     });
   } else {
     document.getElementById("backToSectionBtn").onclick = () => { state.screen = "section"; render(); };
@@ -258,7 +283,7 @@ function attachHandlers(){
   const plan = "growth";
   const params = new URLSearchParams(location.search);
   const token = params.get("token");
-  const redirect = `../checkout.html?plan=${plan}&message=access-required`;
+  const redirect = `../contact.html?interest=${plan}`;
   if (!token || params.get("plan") !== plan) { location.replace(redirect); return; }
   try {
     const access = await fetch(`/api/check-access?token=${encodeURIComponent(token)}&plan=${plan}`);
@@ -266,6 +291,8 @@ function attachHandlers(){
     const contentResponse = await fetch(`/api/get-tool-content?token=${encodeURIComponent(token)}&plan=${plan}`);
     if (!contentResponse.ok) throw new Error("content unavailable");
     ({ ICON_B64, SECTIONS } = await contentResponse.json());
+    TOKEN = token;
+    logUsage("access");
     render();
   } catch (error) {
     location.replace(redirect);

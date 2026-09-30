@@ -114,8 +114,22 @@
 <script>
 let ICON_B64;
 let DEPARTMENTS;
+let TOKEN;
 
 let state = { screen:"home", deptKey:null, query:"" };
+
+/* ===================== USAGE TRACKING ===================== */
+// This tool has no questionnaire to submit (unlike the Clarity Plan) —
+// this just records that the access was used and what was looked at, so
+// admin.html has some visibility into it. Fire-and-forget.
+function logUsage(type, label){
+  if(!TOKEN) return;
+  fetch("/api/log-usage", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ token: TOKEN, plan:"structure", type, label: label || "" })
+  }).catch(()=>{});
+}
 
 function render(){
   const app = document.getElementById("app");
@@ -140,7 +154,7 @@ function brandHeader(){
     <p>Every department in your facility, fully documented and ready to implement.</p>
     <div class="plan-badge">
       <span style="color:#fff;font-size:12px;">You are viewing the</span>
-      <span class="amt">Structure Plan \u2014 \u20a6250,000</span>
+      <span class="amt">Structure Plan</span>
     </div>
   </div>`;
 }
@@ -251,7 +265,12 @@ function attachHandlers(){
     const searchInput = document.getElementById("searchInput");
     searchInput.oninput = (e) => { state.query = e.target.value; render(); document.getElementById("searchInput").focus(); document.getElementById("searchInput").setSelectionRange(state.query.length, state.query.length); };
     document.querySelectorAll(".dept-chip").forEach(el => {
-      el.onclick = () => { state.screen = "dept"; state.deptKey = el.getAttribute("data-dept"); state._openSop = null; render(); };
+      el.onclick = () => {
+        state.screen = "dept"; state.deptKey = el.getAttribute("data-dept"); state._openSop = null;
+        const d = DEPARTMENTS.find(x => x.key === state.deptKey);
+        logUsage("view", d.name);
+        render();
+      };
     });
     document.querySelectorAll(".search-hit").forEach(el => {
       el.onclick = () => {
@@ -259,6 +278,9 @@ function attachHandlers(){
         state.deptKey = el.getAttribute("data-dept");
         state._openSop = el.getAttribute("data-sop");
         state.query = "";
+        const d = DEPARTMENTS.find(x => x.key === state.deptKey);
+        const s = d.sops.find(x => x.code === state._openSop);
+        logUsage("view", `${d.name} — ${s.code}: ${s.title}`);
         render();
       };
     });
@@ -268,7 +290,13 @@ function attachHandlers(){
       el.onclick = () => {
         const card = el.parentElement;
         const code = card.getAttribute("data-sop");
-        state._openSop = (state._openSop === code) ? null : code;
+        const opening = state._openSop !== code;
+        state._openSop = opening ? code : null;
+        if(opening){
+          const d = DEPARTMENTS.find(x => x.key === state.deptKey);
+          const s = d.sops.find(x => x.code === code);
+          logUsage("view", `${d.name} — ${s.code}: ${s.title}`);
+        }
         render();
       };
     });
@@ -280,7 +308,7 @@ function attachHandlers(){
   const plan = "structure";
   const params = new URLSearchParams(location.search);
   const token = params.get("token");
-  const redirect = `../checkout.html?plan=${plan}&message=access-required`;
+  const redirect = `../contact.html?interest=${plan}`;
   if (!token || params.get("plan") !== plan) { location.replace(redirect); return; }
   try {
     const access = await fetch(`/api/check-access?token=${encodeURIComponent(token)}&plan=${plan}`);
@@ -288,6 +316,8 @@ function attachHandlers(){
     const contentResponse = await fetch(`/api/get-tool-content?token=${encodeURIComponent(token)}&plan=${plan}`);
     if (!contentResponse.ok) throw new Error("content unavailable");
     ({ ICON_B64, DEPARTMENTS } = await contentResponse.json());
+    TOKEN = token;
+    logUsage("access");
     render();
   } catch (error) {
     location.replace(redirect);

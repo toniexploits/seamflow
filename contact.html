@@ -92,11 +92,11 @@
         <div class="field">
           <label for="interest">I'm Interested In</label>
           <select id="interest" name="interest">
-            <option>Clarity Plan (&#8358;150,000)</option>
-            <option>Structure Plan (&#8358;250,000)</option>
-            <option>Growth Plan (&#8358;350,000)</option>
-            <option>All Three &mdash; Full Bundle (&#8358;650,000)</option>
-            <option>Not Sure Yet &mdash; Need Guidance</option>
+            <option value="clarity">Clarity Plan (Free Assessment)</option>
+            <option value="structure">Structure Plan</option>
+            <option value="growth">Growth Plan</option>
+            <option value="bundle">All Three &mdash; Full System</option>
+            <option value="unsure">Not Sure Yet &mdash; Need Guidance</option>
           </select>
         </div>
         <div class="field">
@@ -143,6 +143,12 @@
   document.getElementById('navToggle').addEventListener('click', function(){
     document.getElementById('mobileMenu').classList.toggle('open');
   });
+  (function(){
+    const interest = new URLSearchParams(location.search).get('interest');
+    if(!interest) return;
+    const select = document.getElementById('interest');
+    if(select && [...select.options].some(o => o.value === interest)) select.value = interest;
+  })();
 </script>
 </body>
 </html>

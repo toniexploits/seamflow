@@ -1,10 +1,10 @@
 const { getBlobStore } = require("./lib/blob-store");
-const clarity = require("./clarity-content");
 const structure = require("./structure-content");
 const growth = require("./growth-content");
 
+// Clarity is free and public now — it's served unauthenticated by
+// clarity-public-content.js, so it's intentionally not listed here.
 const CONTENT_BY_PLAN = {
-  clarity,
   structure,
   growth
 };

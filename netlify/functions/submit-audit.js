@@ -2,6 +2,10 @@
 // completed. This is the only place a completed audit's answers/scores are
 // captured — until this runs, results only ever existed in the visitor's
 // browser. Read back via admin-submissions.js.
+//
+// The Clarity Plan is free and public (no access token) — the visitor's
+// email, captured on the intro screen, is the only identity we have for a
+// submission here.
 const crypto = require("crypto");
 const { getBlobStore } = require("./lib/blob-store");
 const { sendAuditNotification } = require("./lib/notify");
@@ -18,30 +22,17 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON" }) };
   }
 
-  const { token, facility, role, selectedDepts, answers, deptScores, overall, tierLabel, tierStage } = body;
-  if (!token || !Array.isArray(selectedDepts) || !answers || !Array.isArray(deptScores) || typeof overall !== "number") {
+  const { email, facility, role, selectedDepts, answers, deptScores, overall, tierLabel, tierStage } = body;
+  const validEmail = typeof email === "string" && email.includes("@");
+  if (!validEmail || !Array.isArray(selectedDepts) || selectedDepts.length === 0 || !answers
+      || !Array.isArray(deptScores) || typeof overall !== "number") {
     return { statusCode: 400, body: JSON.stringify({ error: "Missing or invalid audit data" }) };
-  }
-
-  // Reuse the same access check as check-access.js: only a token that's
-  // actually entitled to the clarity plan can file a submission against it.
-  const tokenStore = getBlobStore("access-tokens");
-  let record;
-  try {
-    record = await tokenStore.get(token, { type: "json" });
-  } catch {
-    record = null;
-  }
-  const hasAccess = record && (record.plan === "clarity" || record.grants?.includes("clarity"));
-  if (!hasAccess) {
-    return { statusCode: 403, body: JSON.stringify({ error: "Invalid or expired access token" }) };
   }
 
   const id = crypto.randomBytes(12).toString("hex");
   const submission = {
     id,
-    token,
-    email: record.email,
+    email,
     plan: "clarity",
     facility: facility || "",
     role: role || "",

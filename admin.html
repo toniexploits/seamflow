@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Audit Submissions | SeamFlow Consulting</title>
+<title>Customer Activity | SeamFlow Consulting</title>
 <link rel="icon" href="assets/icon.png">
 <style>
   :root{
@@ -29,6 +29,25 @@
   #gate p{color:var(--grey);font-size:13.5px;margin-bottom:20px;}
   #gate input{width:100%;padding:13px 14px;border-radius:8px;border:1.5px solid var(--line);font-size:15px;text-align:center;margin-bottom:14px;font-family:inherit;}
   #gate .err{color:var(--danger);font-size:12.5px;margin-top:10px;display:none;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1.5px solid var(--line);}
+  .tab{background:none;border:none;padding:10px 4px;margin-right:16px;font-size:13.5px;font-weight:700;color:var(--grey);cursor:pointer;font-family:inherit;border-bottom:2.5px solid transparent;}
+  .tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .usage-type{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;}
+  .usage-type.access{background:#EFF1F8;color:var(--navy);}
+  .usage-type.view{background:#FFFBF0;color:#9A7B12;}
+
+  .grant-form{max-width:420px;}
+  .grant-form .field{margin-bottom:14px;}
+  .grant-form label{display:block;font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+  .grant-form input[type=text],.grant-form input[type=email]{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;}
+  .grant-form .checks{display:flex;gap:18px;}
+  .grant-form .checks label{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px;color:#1A1A1A;text-transform:none;}
+  .grant-links{margin-top:20px;border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .grant-links .link-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .grant-links .link-row:last-child{border-bottom:none;}
+  .grant-links code{font-size:12px;background:var(--panel);padding:3px 6px;border-radius:5px;word-break:break-all;}
+  .grant-err{color:var(--danger);font-size:12.5px;margin-top:10px;display:none;}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   th{text-align:left;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--grey);border-bottom:2px solid var(--line);padding:8px 10px;}
@@ -66,7 +85,7 @@
 <body>
 <div class="hdr no-print"><div class="wrap">
   <div>
-    <h1>Audit Submissions</h1>
+    <h1>Customer Activity</h1>
     <div class="sub">SeamFlow Consulting — internal</div>
   </div>
   <div id="hdrActions"></div>
@@ -86,12 +105,26 @@
 const KEY_STORAGE = "seamflow_admin_key";
 let adminKey = sessionStorage.getItem(KEY_STORAGE) || "";
 let submissions = [];
+let usageEvents = [];
+let currentTab = "submissions"; // submissions | usage
 
 async function api(path){
   const res = await fetch(path, { headers: { "x-admin-key": adminKey } });
   if(res.status === 401) throw new Error("unauthorized");
   if(!res.ok) throw new Error("request failed");
   return res.json();
+}
+
+async function apiPost(path, data){
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+    body: JSON.stringify(data)
+  });
+  if(res.status === 401) throw new Error("unauthorized");
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(json.error || "request failed");
+  return json;
 }
 
 function showGate(err){
@@ -108,10 +141,14 @@ function showApp(){
 
 async function loadList(){
   try{
-    const data = await api("/api/admin-submissions");
-    submissions = data.items || [];
+    const [subsData, usageData] = await Promise.all([
+      api("/api/admin-submissions"),
+      api("/api/admin-usage")
+    ]);
+    submissions = subsData.items || [];
+    usageEvents = usageData.items || [];
     showApp();
-    renderList();
+    renderTabView();
   }catch(e){
     sessionStorage.removeItem(KEY_STORAGE);
     showGate(true);
@@ -120,14 +157,33 @@ async function loadList(){
 
 function scoreColor(score){ if(score<40) return "#C0392B"; if(score<70) return "#F5A800"; return "#1E8E5A"; }
 
-function renderList(){
+function tabsBar(){
+  return `
+    <div class="tabs">
+      <button class="tab ${currentTab==='submissions'?'active':''}" data-tab="submissions">Audit Submissions (${submissions.length})</button>
+      <button class="tab ${currentTab==='usage'?'active':''}" data-tab="usage">Tool Usage — Structure &amp; Growth (${usageEvents.length})</button>
+      <button class="tab ${currentTab==='grant'?'active':''}" data-tab="grant">Grant Access</button>
+    </div>`;
+}
+
+function attachTabHandlers(){
+  document.querySelectorAll(".tab").forEach(el => {
+    el.onclick = () => { currentTab = el.getAttribute("data-tab"); renderTabView(); };
+  });
+}
+
+function renderTabView(){
   document.getElementById("hdrActions").innerHTML = "";
+  if(currentTab === "submissions") renderList();
+  else if(currentTab === "usage") renderUsageList();
+  else renderGrantAccess();
+}
+
+function renderList(){
   const app = document.getElementById("app");
-  if(submissions.length === 0){
-    app.innerHTML = '<div class="empty">No audit submissions yet. They’ll show up here as visitors complete the Business Systems Audit.</div>';
-    return;
-  }
-  app.innerHTML = `
+  const body = submissions.length === 0
+    ? '<div class="empty">No audit submissions yet. They’ll show up here as visitors complete the Business Systems Audit.</div>'
+    : `
     <table>
       <thead><tr><th>Submitted</th><th>Facility</th><th>Role</th><th>Email</th><th>Depts</th><th>Score</th></tr></thead>
       <tbody>
@@ -142,9 +198,89 @@ function renderList(){
           </tr>`).join("")}
       </tbody>
     </table>`;
+  app.innerHTML = tabsBar() + body;
+  attachTabHandlers();
   document.querySelectorAll("tr.row").forEach(row => {
     row.onclick = () => loadDetail(row.getAttribute("data-id"));
   });
+}
+
+function renderUsageList(){
+  const app = document.getElementById("app");
+  const body = usageEvents.length === 0
+    ? '<div class="empty">No Structure or Growth Plan activity yet. They’ll show up here as customers open those tools and browse sections.</div>'
+    : `
+    <table>
+      <thead><tr><th>When</th><th>Email</th><th>Plan</th><th>Event</th><th>Viewed</th></tr></thead>
+      <tbody>
+        ${usageEvents.map(u => `
+          <tr>
+            <td>${new Date(u.at).toLocaleString()}</td>
+            <td>${u.email || "—"}</td>
+            <td style="text-transform:capitalize;">${u.plan}</td>
+            <td><span class="usage-type ${u.type}">${u.type === "access" ? "Opened tool" : "Viewed"}</span></td>
+            <td>${u.label || "—"}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+  app.innerHTML = tabsBar() + body;
+  attachTabHandlers();
+}
+
+function renderGrantAccess(){
+  const app = document.getElementById("app");
+  app.innerHTML = tabsBar() + `
+    <p style="color:var(--grey);font-size:13.5px;max-width:420px;margin-top:0;">Structure and Growth Plan access is granted after a scoping call — no automatic payment. Enter the client's details below to generate their access link(s).</p>
+    <div class="grant-form">
+      <div class="field">
+        <label>Client email</label>
+        <input type="email" id="grantEmail" placeholder="client@facility.com">
+      </div>
+      <div class="field">
+        <label>Facility name (optional)</label>
+        <input type="text" id="grantFacility" placeholder="e.g. Grace Specialist Hospital">
+      </div>
+      <div class="field">
+        <label>Grant access to</label>
+        <div class="checks">
+          <label><input type="checkbox" id="grantStructure"> Structure Plan</label>
+          <label><input type="checkbox" id="grantGrowth"> Growth Plan</label>
+        </div>
+      </div>
+      <button class="btn btn-gold" id="generateGrantBtn">Generate Access Link</button>
+      <div class="grant-err" id="grantErr"></div>
+      <div class="grant-links" id="grantLinks" style="display:none;"></div>
+    </div>`;
+  attachTabHandlers();
+
+  document.getElementById("generateGrantBtn").onclick = async () => {
+    const email = document.getElementById("grantEmail").value.trim();
+    const facility = document.getElementById("grantFacility").value.trim();
+    const plans = [];
+    if(document.getElementById("grantStructure").checked) plans.push("structure");
+    if(document.getElementById("grantGrowth").checked) plans.push("growth");
+    const errEl = document.getElementById("grantErr");
+    errEl.style.display = "none";
+
+    if(!email || !email.includes("@") || plans.length === 0){
+      errEl.textContent = "Enter a valid email and select at least one plan.";
+      errEl.style.display = "block";
+      return;
+    }
+    try{
+      const { links } = await apiPost("/api/admin-grant-access", { email, facility, plans });
+      const linksEl = document.getElementById("grantLinks");
+      linksEl.style.display = "block";
+      linksEl.innerHTML = links.map(l => `
+        <div class="link-row">
+          <span style="text-transform:capitalize;font-weight:700;">${l.plan} Plan</span>
+          <code>${location.origin}${l.url}</code>
+        </div>`).join("");
+    }catch(e){
+      errEl.textContent = "Could not generate the link. Try again.";
+      errEl.style.display = "block";
+    }
+  };
 }
 
 async function loadDetail(id){
@@ -195,7 +331,7 @@ function renderDetail(r){
       <button class="btn btn-primary" id="printBtn">Print / Save as PDF</button>
     </div>`;
 
-  document.getElementById("backBtn").onclick = () => { renderList(); document.getElementById("hdrActions").innerHTML = ""; };
+  document.getElementById("backBtn").onclick = () => { renderTabView(); };
   document.getElementById("printBtn").onclick = () => window.print();
 }
 

@@ -338,5 +338,31 @@ module.exports = {
   {min:97, max:98,  label:"Excellent Plus",            stage:"Excellent"},
   {min:99, max:99,  label:"Outstanding",                stage:"Excellent"},
   {min:100,max:100, label:"World-Class",                stage:"Excellent"}
-]
+],
+  CATEGORIES: [
+    {
+      key: "front_of_house",
+      title: "Front-of-House & Patient Experience",
+      blurb: "Everything a patient touches before, during, and after registration — first impressions, complaints, and emergency intake.",
+      deptKeys: ["front_desk", "patient_experience", "accident_emergency", "patient_referral"]
+    },
+    {
+      key: "clinical_care",
+      title: "Clinical & Care Delivery",
+      blurb: "The clinical departments that actually deliver care — nursing, surgery, pharmacy, diagnostics, and infection control.",
+      deptKeys: ["nursing", "surgery", "pharmacy", "laboratory", "radiology_imaging", "quality_ipc"]
+    },
+    {
+      key: "business_support",
+      title: "Business, Finance & Support Systems",
+      blurb: "The systems that keep the facility running behind the scenes — money, supplies, maintenance, security, and records.",
+      deptKeys: ["finance", "hmo_claims", "procurement", "facility_maintenance", "equipment_maintenance", "security", "medical_records", "information_management"]
+    },
+    {
+      key: "leadership_growth",
+      title: "Leadership, People & Growth Readiness",
+      blurb: "How the facility is led, staffed, and protected against risk — and whether it's ready to grow.",
+      deptKeys: ["hr", "leadership_governance", "risk_management", "marketing_bd"]
+    }
+  ]
 };
